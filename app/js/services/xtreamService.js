@@ -125,17 +125,28 @@ var XtreamService = (function () {
       xhrs.push(xhr);
       xhr.open('GET', entry.url, true);
       xhr.timeout = step;
-      xhr.responseType = 'json';
       xhr.onload = function () {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          success(xhr.response || {});
+        if (done) return;
+        var raw = (xhr.responseText !== undefined ? xhr.responseText : xhr.response) || '';
+        var obj = null;
+        try {
+          var parsed = JSON.parse(raw);
+          if (parsed !== null && typeof parsed === 'object') obj = parsed;
+        } catch (e) {}
+        var ct = (xhr.getResponseHeader ? (xhr.getResponseHeader('content-type') || '') : '').toLowerCase();
+        var okStatus = (xhr.status >= 200 && xhr.status < 300);
+        if (okStatus && obj !== null) {
+          success(obj);
+        } else if (okStatus && (entry.kind === 'direct' || entry.kind === 'https')) {
+          /* servidor respondeu 200 mas nao era JSON (pagina de erro etc.) */
+          fail('Resposta inesperada do servidor (esperado JSON)');
         } else if (entry.kind === 'direct' || entry.kind === 'https') {
           /* resposta do proprio servidor: proxy nao mudaria isso */
           fail('Servidor respondeu HTTP ' + xhr.status);
         } else {
-          /* erro do proxy publico (limite, chave, bloqueio...) -> tenta os outros */
+          /* proxy devolveu HTML/erro/lixo -> tenta os outros */
           if (done) return;
-          reasons.push(entry.label + ':' + xhr.status);
+          reasons.push(entry.label + ':' + (okStatus ? 'nao-json' : ('HTTP ' + xhr.status)));
           pending--;
           if (pending <= 0) buildFail();
         }
