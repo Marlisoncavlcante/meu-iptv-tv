@@ -79,22 +79,30 @@
   /* ---------- 2) Proxy CORS (tela de login) ---------- */
   function proxyPrefixes() {
     return [
-      'https://corsproxy.io/?url=',
-      'https://api.allorigins.win/raw?url=',
-      'https://api.codetabs.com/v1/proxy?quest='
+      { name: 'corsproxy.io',  url: 'https://corsproxy.io/?url=' },
+      { name: 'allorigins',    url: 'https://api.allorigins.win/raw?url=' },
+      { name: 'codetabs',      url: 'https://api.codetabs.com/v1/proxy?quest=' },
+      { name: 'corsproxy.org', url: 'https://corsproxy.org/?url=' }
     ];
   }
   function currentProxyList() {
     var custom = '';
     try { custom = (localStorage.getItem('customProxy') || '').replace(/^\s+|\s+$/g, ''); } catch (e) {}
-    if (custom) return [custom];
+    if (custom) return [{ name: 'proxy proprio', url: custom }];
     return proxyPrefixes();
   }
   function setProxy(on, silent) {
-    window.WEB_PROXY_ENABLED = !!on;
     var list = on ? currentProxyList() : [];
-    window.webProxyPrefix = list.length ? list[0] : '';
-    window.webProxyPrefixes = list;
+    var urls = [];
+    var names = [];
+    for (var i = 0; i < list.length; i++) {
+      urls.push(list[i].url);
+      names.push(list[i].name);
+    }
+    window.WEB_PROXY_ENABLED = !!on;
+    window.webProxyPrefix = urls.length ? urls[0] : '';
+    window.webProxyPrefixes = urls;
+    window.webProxyNames = names;
     try { localStorage.setItem('webProxyV2', on ? '1' : '0'); } catch (e) {}
     var st = document.getElementById('proxyState');
     if (st) {
@@ -102,11 +110,10 @@
       st.style.color = on ? '#ffb800' : '';
     }
     if (!silent) {
-      var ts = document.getElementById('toast');
       var status = document.getElementById('loginStatus');
       if (status) {
         status.textContent = on
-          ? 'Proxy ativado. As chamadas da API usarão um proxy público de CORS. (para desativar, desmarque)'
+          ? 'Proxy ativado. As chamadas da API usarão um serviço de CORS (público ou o proxy próprio, se preenchido). (para desativar, desmarque)'
           : '';
       }
     }

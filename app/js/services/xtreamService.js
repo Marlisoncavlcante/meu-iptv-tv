@@ -35,9 +35,10 @@ var XtreamService = (function () {
      proxy abaixo em ordem ate conseguir. */
   function proxyBaseUrls() {
     return [
-      'https://corsproxy.io/?url=',
-      'https://api.allorigins.win/raw?url=',
-      'https://api.codetabs.com/v1/proxy?quest='
+      { name: 'corsproxy.io',  url: 'https://corsproxy.io/?url=' },
+      { name: 'allorigins',    url: 'https://api.allorigins.win/raw?url=' },
+      { name: 'codetabs',      url: 'https://api.codetabs.com/v1/proxy?quest=' },
+      { name: 'corsproxy.org', url: 'https://corsproxy.org/?url=' }
     ];
   }
 
@@ -48,27 +49,51 @@ var XtreamService = (function () {
     return '';
   }
 
-  function candidateUrls(url) {
-    var out = [url];
-    var up = httpsUpgrade(url);
-    if (up) out.push(up);
+  /* Lista de proxies realmente ativos na versao web. O web.js grava em
+     window.webProxyPrefixes (URLs) e window.webProxyNames (nomes);
+     sem esses globais (LG/Android) nao ha proxy — la se usa acesso direto. */
+  function webProxyList() {
+    var urls = [];
+    var names = [];
     try {
       if (window.WEB_PROXY_ENABLED) {
-        var enc = encodeURIComponent(url);
-        var list = (window.webProxyPrefixes && window.webProxyPrefixes.length)
-          ? window.webProxyPrefixes : proxyBaseUrls();
-        for (var i = 0; i < list.length; i++) {
-          if (list[i]) out.push(list[i] + enc);
+        if (window.webProxyPrefixes && window.webProxyPrefixes.length) {
+          urls = window.webProxyPrefixes;
+          names = (window.webProxyNames && window.webProxyNames.length === urls.length)
+            ? window.webProxyNames : [];
+        } else {
+          var base = proxyBaseUrls();
+          for (var i = 0; i < base.length; i++) { urls.push(base[i].url); names.push(base[i].name); }
         }
       }
     } catch (e) {}
+    return { urls: urls, names: names };
+  }
+
+  function candidateUrls(url) {
+    var out = [{ url: url, kind: 'direct', label: 'direto' }];
+    var up = httpsUpgrade(url);
+    if (up) out.push({ url: up, kind: 'https', label: 'https' });
+    var pl = webProxyList();
+    for (var i = 0; i < pl.urls.length; i++) {
+      if (pl.urls[i]) {
+        out.push({
+          url: pl.urls[i] + encodeURIComponent(url),
+          kind: 'proxy',
+          label: pl.names[i] || ('proxy' + (i + 1))
+        });
+      }
+    }
     return out;
   }
 
-  /* XHR simples (webOS não garante fetch) */
+  /* XHR simples (webOS não garante fetch).
+     Dispara as tentativas (direto, https e proxies) em paralelo.
+     Resposta HTTP do proprio servidor (direto/https) e final — um proxy
+     nao mudaria um 401/404. Falha/erro de proxy apenas conta a tentativa,
+     ate nao sobrar nenhuma (ai monta o resumo nomeado). */
   function xhrJson(url, onOk, onErr, timeoutMs) {
     var list = candidateUrls(url);
-    var upUrl = httpsUpgrade(url);
     var tmo = timeoutMs || 25000;
     var step = Math.max(15000, tmo);
     var proxyOn = false;
@@ -94,36 +119,36 @@ var XtreamService = (function () {
       onErr(new Error(msg));
     }
 
-    function tryNext(current, label) {
+    function tryNext(entry) {
       if (done) return;
       var xhr = new XMLHttpRequest();
       xhrs.push(xhr);
-      xhr.open('GET', current, true);
+      xhr.open('GET', entry.url, true);
       xhr.timeout = step;
       xhr.responseType = 'json';
       xhr.onload = function () {
         if (xhr.status >= 200 && xhr.status < 300) {
           success(xhr.response || {});
-        } else if (current === url || current === upUrl) {
-          /* resposta direta do proprio servidor: proxy nao mudaria isso */
+        } else if (entry.kind === 'direct' || entry.kind === 'https') {
+          /* resposta do proprio servidor: proxy nao mudaria isso */
           fail('Servidor respondeu HTTP ' + xhr.status);
         } else {
-          /* erro do proxy publico (limite, bloqueio etc.) -> tenta os outros */
+          /* erro do proxy publico (limite, chave, bloqueio...) -> tenta os outros */
           if (done) return;
-          reasons.push(label + ':' + xhr.status);
+          reasons.push(entry.label + ':' + xhr.status);
           pending--;
           if (pending <= 0) buildFail();
         }
       };
       xhr.onerror = function () {
         if (done) return;
-        reasons.push(label);
+        reasons.push(entry.label);
         pending--;
         if (pending <= 0) buildFail();
       };
       xhr.ontimeout = function () {
         if (done) return;
-        reasons.push('tempo');
+        reasons.push(entry.label + ':tempo');
         pending--;
         if (pending <= 0) buildFail();
       };
@@ -134,7 +159,7 @@ var XtreamService = (function () {
       }, step + 2000);
       try { xhr.send(); } catch (e4) {
         if (done) return;
-        reasons.push(label);
+        reasons.push(entry.label);
         pending--;
         if (pending <= 0) buildFail();
       }
@@ -146,9 +171,9 @@ var XtreamService = (function () {
         if (seen.indexOf(reasons[i]) < 0) seen.push(reasons[i]);
       }
       var msg = 'Erro de rede ao conectar';
-      if (seen.length) msg += ' (tentativas: ' + seen.join('/') + ')';
+      if (seen.length) msg += ' (tentativas: ' + seen.join(' / ') + ')';
       if (proxyOn) {
-        msg += '. Falhou direto, HTTPS e via proxy. Confira o endereco do servidor ou informe um proxy proprio no campo do login.';
+        msg += '. Falhou direto, HTTPS e via proxy. Confira o endereco do servidor ou informe um proxy proprio (ex.: Cloudflare Worker) no campo do login.';
       } else {
         msg += '. Se o painel e HTTP ou bloqueia o navegador, marque "usar proxy CORS" no login.';
       }
@@ -156,10 +181,7 @@ var XtreamService = (function () {
     }
 
     for (var idx = 0; idx < list.length; idx++) {
-      (function (current) {
-        var label = current === url ? 'direto' : (current === upUrl ? 'https' : 'proxy' + idx);
-        tryNext(current, label);
-      })(list[idx]);
+      tryNext(list[idx]);
     }
     if (list.length === 0) fail('URL vazia');
   }
