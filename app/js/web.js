@@ -84,10 +84,17 @@
       'https://api.codetabs.com/v1/proxy?quest='
     ];
   }
+  function currentProxyList() {
+    var custom = '';
+    try { custom = (localStorage.getItem('customProxy') || '').replace(/^\s+|\s+$/g, ''); } catch (e) {}
+    if (custom) return [custom];
+    return proxyPrefixes();
+  }
   function setProxy(on, silent) {
     window.WEB_PROXY_ENABLED = !!on;
-    window.webProxyPrefix = on ? proxyPrefixes()[0] : '';
-    window.webProxyPrefixes = on ? proxyPrefixes() : [];
+    var list = on ? currentProxyList() : [];
+    window.webProxyPrefix = list.length ? list[0] : '';
+    window.webProxyPrefixes = list;
     try { localStorage.setItem('webProxyV2', on ? '1' : '0'); } catch (e) {}
     var st = document.getElementById('proxyState');
     if (st) {
@@ -104,6 +111,11 @@
       }
     }
   }
+  function syncCustomRow() {
+    var cb = document.getElementById('inProxy');
+    var row = document.getElementById('webProxyCustom');
+    if (row) row.style.display = (cb && cb.checked) ? '' : 'none';
+  }
   function initProxy() {
     var cb = document.getElementById('inProxy');
     if (!cb) return;
@@ -115,9 +127,29 @@
     if (saved === null || saved === undefined) saved = '1';
     saved = String(saved);
     cb.checked = saved === '1';
+    var cp = document.getElementById('inCustomProxy');
+    if (cp) {
+      var cval = '';
+      try { cval = localStorage.getItem('customProxy') || ''; } catch (e) {}
+      cp.value = cval;
+      cp.addEventListener('input', function () {
+        var v = cp.value.replace(/^\s+|\s+$/g, '');
+        try { localStorage.setItem('customProxy', v); } catch (e) {}
+        setProxy(cb.checked, true);
+      });
+      /* Enter dentro do campo nao deve disparar o login */
+      cp.addEventListener('keydown', function (e) {
+        if (e.keyCode === 13 || e.keyCode === 8 || e.keyCode === 37 || e.keyCode === 39) {
+          e.stopPropagation();
+        }
+        if (e.keyCode === 13) e.preventDefault();
+      });
+    }
+    syncCustomRow();
     setProxy(cb.checked, true);
     cb.addEventListener('change', function () {
       setProxy(cb.checked, false);
+      syncCustomRow();
     });
   }
 

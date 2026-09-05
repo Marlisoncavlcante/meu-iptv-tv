@@ -41,8 +41,17 @@ var XtreamService = (function () {
     ];
   }
 
+  function httpsUpgrade(url) {
+    if (url.indexOf('http://') === 0) {
+      return 'https://' + url.substring(7);
+    }
+    return '';
+  }
+
   function candidateUrls(url) {
     var out = [url];
+    var up = httpsUpgrade(url);
+    if (up) out.push(up);
     try {
       if (window.WEB_PROXY_ENABLED) {
         var enc = encodeURIComponent(url);
@@ -59,60 +68,100 @@ var XtreamService = (function () {
   /* XHR simples (webOS não garante fetch) */
   function xhrJson(url, onOk, onErr, timeoutMs) {
     var list = candidateUrls(url);
+    var upUrl = httpsUpgrade(url);
     var tmo = timeoutMs || 25000;
-    var idx = 0;
+    var step = Math.max(15000, tmo);
     var proxyOn = false;
     try { proxyOn = !!window.WEB_PROXY_ENABLED; } catch (e) {}
-    var tried = [];
+    var pending = list.length;
+    var done = false;
+    var xhrs = [];
+    var reasons = [];
 
-    /* tenta direto primeiro e, com proxy ativo, cada proxy em ordem.
-       Cada tentativa tem no maximo metade do timeout total (para o
-       login nao demorar demais quando tudo falha). */
-    function attempt() {
-      var current = list[idx++];
-      if (!current) {
-        var last = tried.length ? tried[tried.length - 1] : '';
-        var msg = 'Erro de rede ao conectar';
-        if (last) msg += ' (' + last + ')';
-        if (proxyOn) {
-          msg += '. Falhou direto e via proxy: confira o endereco do servidor ou tente novamente.';
-        } else {
-          msg += '. Se o painel e HTTP (nao HTTPS) ou bloqueia o navegador, marque "usar proxy CORS" no login.';
-        }
-        onErr(new Error(msg));
-        return;
-      }
+    function abortAll() {
+      for (var i = 0; i < xhrs.length; i++) { try { xhrs[i].abort(); } catch (e2) {} }
+    }
+
+    function success(resp) {
+      if (done) return;
+      done = true; abortAll();
+      onOk(resp);
+    }
+
+    function fail(msg) {
+      if (done) return;
+      done = true; abortAll();
+      onErr(new Error(msg));
+    }
+
+    function tryNext(current, label) {
+      if (done) return;
       var xhr = new XMLHttpRequest();
-      var done = false;
-      var timer = null;
-      var step = Math.max(8000, Math.round(tmo / 2));
+      xhrs.push(xhr);
       xhr.open('GET', current, true);
       xhr.timeout = step;
       xhr.responseType = 'json';
       xhr.onload = function () {
-        if (done) return; done = true;
-        if (timer) clearTimeout(timer);
         if (xhr.status >= 200 && xhr.status < 300) {
-          onOk(xhr.response || {});
+          success(xhr.response || {});
+        } else if (current === url || current === upUrl) {
+          /* resposta direta do proprio servidor: proxy nao mudaria isso */
+          fail('Servidor respondeu HTTP ' + xhr.status);
         } else {
-          tried.push('HTTP ' + xhr.status);
-          attempt();
+          /* erro do proxy publico (limite, bloqueio etc.) -> tenta os outros */
+          if (done) return;
+          reasons.push(label + ':' + xhr.status);
+          pending--;
+          if (pending <= 0) buildFail();
         }
       };
       xhr.onerror = function () {
-        if (done) return; done = true; if (timer) clearTimeout(timer);
-        tried.push(current === url ? 'rede direta' : 'proxy');
-        attempt();
+        if (done) return;
+        reasons.push(label);
+        pending--;
+        if (pending <= 0) buildFail();
       };
       xhr.ontimeout = function () {
-        if (done) return; done = true;
-        tried.push('tempo');
-        attempt();
+        if (done) return;
+        reasons.push('tempo');
+        pending--;
+        if (pending <= 0) buildFail();
       };
-      timer = setTimeout(function () { try { xhr.abort(); } catch (e) {} }, step + 1500);
-      xhr.send();
+      setTimeout(function () {
+        if (!done && xhr.readyState > 0 && xhr.readyState < 4) {
+          try { xhr.abort(); } catch (e3) {}
+        }
+      }, step + 2000);
+      try { xhr.send(); } catch (e4) {
+        if (done) return;
+        reasons.push(label);
+        pending--;
+        if (pending <= 0) buildFail();
+      }
     }
-    attempt();
+
+    function buildFail() {
+      var seen = [];
+      for (var i = 0; i < reasons.length; i++) {
+        if (seen.indexOf(reasons[i]) < 0) seen.push(reasons[i]);
+      }
+      var msg = 'Erro de rede ao conectar';
+      if (seen.length) msg += ' (tentativas: ' + seen.join('/') + ')';
+      if (proxyOn) {
+        msg += '. Falhou direto, HTTPS e via proxy. Confira o endereco do servidor ou informe um proxy proprio no campo do login.';
+      } else {
+        msg += '. Se o painel e HTTP ou bloqueia o navegador, marque "usar proxy CORS" no login.';
+      }
+      fail(msg);
+    }
+
+    for (var idx = 0; idx < list.length; idx++) {
+      (function (current) {
+        var label = current === url ? 'direto' : (current === upUrl ? 'https' : 'proxy' + idx);
+        tryNext(current, label);
+      })(list[idx]);
+    }
+    if (list.length === 0) fail('URL vazia');
   }
 
   function apiUrl(action, extra) {

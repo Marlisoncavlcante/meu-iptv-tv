@@ -42,6 +42,12 @@
         </label>
         <span id="proxyState" class="wp-state"></span>
       </div>
+      <div id="webProxyCustom" class="web-proxy-custom" style="display:none;">
+        <input id="inCustomProxy" type="text" autocomplete="off"
+          style="width:100%; margin-top:10px; padding:8px 10px; border-radius:6px; border:1px solid #2b3b57; background:#0d1526; color:#e6edf7; font-size:14px; box-sizing:border-box;"
+          placeholder="Proxy proprio (opcional): https://meu-proxy.com/?url=">
+        <span class="wp-state" style="display:block; margin-top:4px;">Deixe vazio para usar os proxies publicos automaticos.</span>
+      </div>
 
       <button id="btnLogin" class="btn-primary focusable" data-action="login" data-focus="true">
         <span class="btn-label">Entrar</span>
