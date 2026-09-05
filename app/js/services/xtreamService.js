@@ -28,37 +28,91 @@ var XtreamService = (function () {
   /* Proxy CORS (apenas versão WEB): alguns servidores IPTV bloqueiam
      o navegador. Quando ativo, as chamadas da API passam por um proxy
      público de CORS. Ativado pelo usuário na tela de login (web.js). */
-  function maybeProxyUrl(url) {
+  /* Lista de proxies CORS publicos (somente versao WEB).
+     Painéis Xtream normalmente nao enviam cabecalhos CORS e muitos so
+     falam HTTP (a pagina do site e HTTPS -> mixed content bloqueado).
+     Cada chamada tenta a URL direta e, com o proxy ativo, tenta cada
+     proxy abaixo em ordem ate conseguir. */
+  function proxyBaseUrls() {
+    return [
+      'https://corsproxy.io/?url=',
+      'https://api.allorigins.win/raw?url=',
+      'https://api.codetabs.com/v1/proxy?quest='
+    ];
+  }
+
+  function candidateUrls(url) {
+    var out = [url];
     try {
-      if (window.WEB_PROXY_ENABLED && window.webProxyPrefix) {
-        return window.webProxyPrefix + encodeURIComponent(url);
+      if (window.WEB_PROXY_ENABLED) {
+        var enc = encodeURIComponent(url);
+        var list = (window.webProxyPrefixes && window.webProxyPrefixes.length)
+          ? window.webProxyPrefixes : proxyBaseUrls();
+        for (var i = 0; i < list.length; i++) {
+          if (list[i]) out.push(list[i] + enc);
+        }
       }
     } catch (e) {}
-    return url;
+    return out;
   }
 
   /* XHR simples (webOS não garante fetch) */
   function xhrJson(url, onOk, onErr, timeoutMs) {
-    url = maybeProxyUrl(url);
-    var xhr = new XMLHttpRequest();
-    var done = false;
-    var timer = null;
-    xhr.open('GET', url, true);
-    xhr.timeout = timeoutMs || 25000;
-    xhr.responseType = 'json';
-    xhr.onload = function () {
-      if (done) return; done = true;
-      if (timer) clearTimeout(timer);
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onOk(xhr.response || {});
-      } else {
-        onErr(new Error('HTTP ' + xhr.status));
+    var list = candidateUrls(url);
+    var tmo = timeoutMs || 25000;
+    var idx = 0;
+    var proxyOn = false;
+    try { proxyOn = !!window.WEB_PROXY_ENABLED; } catch (e) {}
+    var tried = [];
+
+    /* tenta direto primeiro e, com proxy ativo, cada proxy em ordem.
+       Cada tentativa tem no maximo metade do timeout total (para o
+       login nao demorar demais quando tudo falha). */
+    function attempt() {
+      var current = list[idx++];
+      if (!current) {
+        var last = tried.length ? tried[tried.length - 1] : '';
+        var msg = 'Erro de rede ao conectar';
+        if (last) msg += ' (' + last + ')';
+        if (proxyOn) {
+          msg += '. Falhou direto e via proxy: confira o endereco do servidor ou tente novamente.';
+        } else {
+          msg += '. Se o painel e HTTP (nao HTTPS) ou bloqueia o navegador, marque "usar proxy CORS" no login.';
+        }
+        onErr(new Error(msg));
+        return;
       }
-    };
-    xhr.onerror = function () { if (done) return; done = true; if (timer) clearTimeout(timer); onErr(new Error('Erro de rede')); };
-    xhr.ontimeout = function () { if (done) return; done = true; onErr(new Error('Tempo esgotado')); };
-    timer = setTimeout(function () { try { xhr.abort(); } catch (e) {} }, (timeoutMs || 25000) + 1500);
-    xhr.send();
+      var xhr = new XMLHttpRequest();
+      var done = false;
+      var timer = null;
+      var step = Math.max(8000, Math.round(tmo / 2));
+      xhr.open('GET', current, true);
+      xhr.timeout = step;
+      xhr.responseType = 'json';
+      xhr.onload = function () {
+        if (done) return; done = true;
+        if (timer) clearTimeout(timer);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onOk(xhr.response || {});
+        } else {
+          tried.push('HTTP ' + xhr.status);
+          attempt();
+        }
+      };
+      xhr.onerror = function () {
+        if (done) return; done = true; if (timer) clearTimeout(timer);
+        tried.push(current === url ? 'rede direta' : 'proxy');
+        attempt();
+      };
+      xhr.ontimeout = function () {
+        if (done) return; done = true;
+        tried.push('tempo');
+        attempt();
+      };
+      timer = setTimeout(function () { try { xhr.abort(); } catch (e) {} }, step + 1500);
+      xhr.send();
+    }
+    attempt();
   }
 
   function apiUrl(action, extra) {

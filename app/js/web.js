@@ -77,13 +77,18 @@
   }
 
   /* ---------- 2) Proxy CORS (tela de login) ---------- */
-  function proxyPrefix() {
-    return 'https://corsproxy.io/?url=';
+  function proxyPrefixes() {
+    return [
+      'https://corsproxy.io/?url=',
+      'https://api.allorigins.win/raw?url=',
+      'https://api.codetabs.com/v1/proxy?quest='
+    ];
   }
   function setProxy(on, silent) {
     window.WEB_PROXY_ENABLED = !!on;
-    window.webProxyPrefix = on ? proxyPrefix() : '';
-    try { localStorage.setItem('webProxy', on ? '1' : '0'); } catch (e) {}
+    window.webProxyPrefix = on ? proxyPrefixes()[0] : '';
+    window.webProxyPrefixes = on ? proxyPrefixes() : [];
+    try { localStorage.setItem('webProxyV2', on ? '1' : '0'); } catch (e) {}
     var st = document.getElementById('proxyState');
     if (st) {
       st.textContent = on ? 'proxy ATIVO — seus dados passam por um serviço externo de CORS' : '';
@@ -102,8 +107,13 @@
   function initProxy() {
     var cb = document.getElementById('inProxy');
     if (!cb) return;
-    var saved = '0';
-    try { saved = localStorage.getItem('webProxy') || '0'; } catch (e) {}
+    var saved = null;
+    try { saved = localStorage.getItem('webProxyV2'); } catch (e) {}
+    /* A web roda em HTTPS (GitHub Pages) e os paineis costumam ser HTTP
+       e/ou sem cabecalhos CORS: proxy CORS ligado por padrao na 1a visita.
+       (chave V2 para nao herdar o "desligado" salvo por versoes antigas) */
+    if (saved === null || saved === undefined) saved = '1';
+    saved = String(saved);
     cb.checked = saved === '1';
     setProxy(cb.checked, true);
     cb.addEventListener('change', function () {
