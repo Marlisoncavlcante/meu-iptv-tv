@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#10203f"/>
+      <stop offset="100%" stop-color="#070b14"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#g)"/>
+  <g transform="translate(960 470)">
+    <rect x="-70" y="-70" width="140" height="140" rx="28" fill="#0f6df0"/>
+    <rect x="-42" y="-52" width="84" height="48" rx="8" fill="#0b0f1e"/>
+    <rect x="-34" y="-26" width="68" height="30" rx="6" fill="#e8ecf8"/>
+    <path d="M-6 4l28 17-28 17z" fill="#0f6df0"/>
+    <rect x="-30" y="-10" width="30" height="4" rx="2" fill="#2f6fed"/>
+    <rect x="-30" y="-2" width="44" height="4" rx="2" fill="#8fb3f7"/>
+  </g>
+  <text x="960" y="690" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="46" fill="#c6d4ea">Meu IPTV TV</text>
+  <text x="960" y="745" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" fill="#5b6c88">Canais &bull; Filmes &bull; Series</text>
+</svg>

@@ -1,0 +1,5 @@
+# Publicado via GitHub Pages (branch main, raiz do repositório)
+# Arquivos de projeto/ambiente (não sobem para o site)
+*.log
+.DS_Store
+Thumbs.db

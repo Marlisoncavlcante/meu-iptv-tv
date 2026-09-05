@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- Versão WEB: web.js encaixa o canvas 1920x1080 em qualquer janela -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Meu IPTV TV — versão web. Player IPTV Xtream no navegador: canais ao vivo, filmes e séries.">
+  <title>Meu IPTV TV — Versão Web</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ============ TELA DE LOGIN ============ -->
+  <section id="screenLogin" class="screen active">
+    <div class="login-bg"></div>
+    <div class="login-box">
+      <div class="brand">
+        <div class="brand-logo">▶</div>
+        <div>
+          <h1>Meu IPTV <span>TV</span></h1>
+          <p class="brand-sub">Canais &bull; Filmes &bull; Séries</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="inServer">Servidor (DNS) da lista</label>
+        <input id="inServer" type="text" placeholder="http://seudns.com:8080" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="inUser">Usuário</label>
+        <input id="inUser" type="text" placeholder="Digite seu usuário" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="inPass">Senha</label>
+        <input id="inPass" type="password" placeholder="Digite sua senha" autocomplete="off">
+      </div>
+
+      <div id="webProxyRow" class="web-proxy" title="Ative só se o servidor bloquear o acesso pelo navegador">
+        <label class="wp-label">
+          <input type="checkbox" id="inProxy" class="wp-cb">
+          <span>Servidor bloqueia o navegador? Usar <b>proxy CORS</b></span>
+        </label>
+        <span id="proxyState" class="wp-state"></span>
+      </div>
+
+      <button id="btnLogin" class="btn-primary focusable" data-action="login" data-focus="true">
+        <span class="btn-label">Entrar</span>
+        <span class="btn-hint">OK</span>
+      </button>
+      <p id="loginStatus" class="status"></p>
+      <p class="login-foot">As credenciais ficam salvas apenas neste aparelho.</p>
+      <p class="login-foot web-note">💻 <b>Web:</b> setas + <b>Enter</b> navegam · <b>Backspace/Esc</b> volta · <b>F</b> favorita · <b>F11</b> tela cheia.</p>
+    </div>
+  </section>
+
+  <!-- ============ MENU PRINCIPAL ============ -->
+  <section id="screenMenu" class="screen">
+    <header class="topbar">
+      <div class="brand small">
+        <div class="brand-logo small">▶</div>
+        <h1>Meu IPTV <span>TV</span></h1>
+      </div>
+      <div class="topbar-right">
+        <span id="menuUser" class="chip-user">—</span>
+        <button class="btn-mini focusable" data-action="logout" data-focus="true">Sair</button>
+      </div>
+    </header>
+
+    <div class="menu-wrap">
+      <p class="menu-title">O que você quer assistir?</p>
+      <div class="menu-grid">
+        <button class="menu-card focusable" data-action="openSection" data-section="live" data-focus="true">
+          <span class="mc-ic live">📡</span>
+          <span class="mc-name">TV ao Vivo</span>
+          <span class="mc-desc">Canais em tempo real</span>
+        </button>
+        <button class="menu-card focusable" data-action="openSection" data-section="vod" data-focus="true">
+          <span class="mc-ic movie">🎬</span>
+          <span class="mc-name">Filmes</span>
+          <span class="mc-desc">Catálogo de filmes</span>
+        </button>
+        <button class="menu-card focusable" data-action="openSection" data-section="series" data-focus="true">
+          <span class="mc-ic series">📺</span>
+          <span class="mc-name">Séries</span>
+          <span class="mc-desc">Temporadas e episódios</span>
+        </button>
+        <button class="menu-card focusable" data-action="openFav" data-focus="true">
+          <span class="mc-ic fav">★</span>
+          <span class="mc-name">Favoritos</span>
+          <span class="mc-desc">Seus canais, filmes e séries</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LISTAGEM (categorias + grade) ============ -->
+  <section id="screenList" class="screen">
+    <header class="topbar list">
+      <button class="btn-back focusable" data-action="goHome" data-focus="true">‹</button>
+      <div class="crumb">
+        <h2 id="listTitle">Canais</h2>
+        <span id="listSub" class="crumb-sub">Carregando…</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-mini focusable" data-action="reloadSection" data-focus="true">Atualizar</button>
+      </div>
+    </header>
+
+    <div class="list-body">
+      <aside id="catPanel" class="cat-panel">
+        <div id="catList" class="cat-list"></div>
+      </aside>
+
+      <main id="gridWrap" class="grid-wrap">
+        <div class="grid-top">
+          <button id="sortBtn" class="btn-search focusable hidden" data-type="sort" data-focus="true">Ordenar: Padrão ▾</button>
+          <button id="genreBtn" class="btn-search focusable hidden" data-type="genre" data-focus="true">Categorias/Gêneros ▸</button>
+          <button id="searchBtn" class="btn-search focusable hidden" data-type="search" data-focus="true">🔍 Buscar neste grupo</button>
+          <button id="searchTag" class="search-tag focusable hidden" data-type="search-exit" data-focus="true"></button>
+        </div>
+        <div id="itemGrid" class="item-grid"></div>
+        <div id="gridEmpty" class="empty hidden">Nenhum item nesta categoria.</div>
+        <div id="gridLoading" class="loading-row hidden">Carregando itens…</div>
+      </main>
+    </div>
+
+    <!-- ============ TECLADO VIRTUAL DE BUSCA ============ -->
+    <div id="kbd" class="kbd hidden">
+      <div class="kbd-head">
+        <div class="kbd-title">BUSCA EM <b id="kbdGroup"></b></div>
+        <div id="kbdQuery" class="kbd-query"></div>
+        <div id="kbdCount" class="kbd-count"></div>
+      </div>
+      <div id="kbdRows" class="kbd-rows"></div>
+    </div>
+
+    <!-- ============ CLASSIFICAR POR GÊNERO (séries) ============ -->
+    <div id="genreOv" class="kbd hidden">
+      <div class="kbd-head">
+        <div class="kbd-title">CLASSIFICAR POR CATEGORIA/GÊNERO em <b id="genreOvGroup"></b></div>
+        <div id="genreOvCount" class="kbd-count"></div>
+      </div>
+      <div id="genreOvRows" class="kbd-rows"></div>
+    </div>
+  </section>
+
+  <!-- ============ DETALHE DE SÉRIE ============ -->
+  <section id="screenSeries" class="screen">
+    <header class="topbar list">
+      <button class="btn-back focusable" data-action="backToList" data-focus="true">‹</button>
+      <div class="crumb">
+        <h2 id="serTitle">Série</h2>
+        <span id="serSub" class="crumb-sub"></span>
+      </div>
+      <div class="topbar-right">
+        <button id="serFavBtn" class="btn-mini focusable" data-action="toggleFavSeries" data-focus="true">☆ Favoritar</button>
+      </div>
+    </header>
+
+    <div id="serBody" class="series-body"></div>
+  </section>
+
+  <!-- ============ FAVORITOS ============ -->
+  <section id="screenFav" class="screen">
+    <header class="topbar list">
+      <button class="btn-back focusable" data-action="closeFav" data-focus="true">‹</button>
+      <div class="crumb">
+        <h2>Favoritos</h2>
+        <span id="favSub" class="crumb-sub"></span>
+      </div>
+    </header>
+    <div class="list-body">
+      <div class="grid-wrap">
+        <div id="favEmpty" class="empty hidden">
+          Nenhum favorito ainda.<br><br>
+          Na lista, selecione um item e pressione o botão <b>azul/amarelo</b> do controle para favoritar ★
+        </div>
+        <div id="favGrid" class="item-grid portrait"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PLAYER ============ -->
+  <section id="screenPlayer" class="screen player">
+    <video id="videoEl" playsinline></video>
+    <div class="player-ui">
+      <div class="pu-top">
+        <div class="pu-title-wrap">
+          <span id="puTitle" class="pu-title"></span>
+          <span id="puLiveBadge" class="pu-badge hidden">AO VIVO</span>
+        </div>
+        <button class="btn-mini focusable" data-action="stopPlayer" data-focus="true">Sair do player</button>
+      </div>
+      <div class="pu-center">
+        <div id="puError" class="pu-error hidden">
+          <p>Não foi possível reproduzir este conteúdo.</p>
+          <p class="pu-err-sub">Tente outro item ou verifique sua conexão.</p>
+        </div>
+        <div id="puSpinner" class="pu-spinner hidden"></div>
+      </div>
+      <div class="pu-bottom">
+        <span class="pu-hint">⬆ ⬇ / PgUp PgDn: trocar canal &nbsp;•&nbsp; azul/amarelo: ★ favoritar &nbsp;•&nbsp; BACK: sair</span>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="globalLoader" class="global-loader hidden">
+    <div class="gl-spin"></div>
+    <p id="globalLoaderMsg">Carregando…</p>
+  </div>
+
+  <script src="js/services/storageService.js"></script>
+  <script src="js/services/xtreamService.js"></script>
+  <script src="js/services/playerService.js"></script>
+  <script src="js/controllers/mainController.js"></script>
+  <script src="vendor/hls.min.js"></script>
+  <script src="js/web.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
