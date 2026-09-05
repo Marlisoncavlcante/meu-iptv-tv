@@ -3,7 +3,8 @@
 Landing page de divulgação do aplicativo **Meu IPTV TV** (player IPTV Xtream),
 publicada no **GitHub Pages**: https://marlisoncavlcante.github.io/meu-iptv-tv/
 
-- **Download para Windows (ZIP, ~0,5 MB):** `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip`
+- **Download para Windows — Instalador (.exe, ~0,6 MB):** `assets/download/MeuIPTV-TV-Setup-v1.0.1.exe` (cria atalho no Desktop e no Menu Iniciar)
+- **Download para Windows — Portátil (ZIP, ~0,5 MB):** `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip`
 - **Download Android (APK):** `assets/download/MeuIPTV-TV-v1.0.1.apk`
 - **Política de privacidade:** `privacidade.html`
 
@@ -21,7 +22,8 @@ publicada no **GitHub Pages**: https://marlisoncavlcante.github.io/meu-iptv-tv/
 | `index.html` | Landing page (PT-BR): recursos, telas, como instalar, download Windows/APK, FAQ |
 | `assets/css/style.css` | Estilos da página |
 | `assets/js/main.js` | Interações da página (menu, lightbox, ano) |
-| `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip` | App Windows (WebView2, portátil) |
+| `assets/download/MeuIPTV-TV-Setup-v1.0.1.exe` | Instalador Windows (NSIS, cria atalhos Desktop/Menu Iniciar) |
+| `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip` | App Windows portátil (WebView2) |
 | `assets/download/MeuIPTV-TV-v1.0.1.apk` | App Android (TV Box / celular) |
 | `privacidade.html` | Política de privacidade |
 | `assets/img/` | Ícones e capturas de tela |
@@ -40,13 +42,15 @@ git push
 O GitHub Pages publica automaticamente (branch `main`).
 
 > Downloads e assets funcionam com caminhos relativos do Pages.
-> Para atualizar o ZIP do Windows: reconstrua o app (pasta `windows/` na raiz do
-> projeto) e substitua o arquivo em `assets/download/`.
+> Para atualizar os arquivos do Windows: reconstrua o app (pasta `windows/` na
+> raiz do projeto) e o instalador NSIS, depois substitua os arquivos em
+> `assets/download/`.
 
 ## Versões dos apps
 
 | Plataforma | Package | Versão | Arquivo |
 |---|---|---|---|
-| Windows (10/11 x64) | app local (WebView2) | 1.0.1 | `MeuIPTV-TV-Windows-v1.0.1.zip` |
+| Windows (10/11 x64) — instalador | app local (WebView2) | 1.0.1 | `MeuIPTV-TV-Setup-v1.0.1.exe` |
+| Windows (10/11 x64) — portátil | app local (WebView2) | 1.0.1 | `MeuIPTV-TV-Windows-v1.0.1.zip` |
 | Android | `com.meuiptv.tv` | 1.0.1 | `MeuIPTV-TV-v1.0.1.apk` |
 | LG webOS | `com.meuiptv.tv` | 1.0.0 | fora deste site (loja LG / Developer Mode) |
