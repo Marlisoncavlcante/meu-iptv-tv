@@ -51,12 +51,16 @@ var XtreamService = (function () {
 
   /* Lista de proxies realmente ativos na versao web. O web.js grava em
      window.webProxyPrefixes (URLs) e window.webProxyNames (nomes);
-     sem esses globais (LG/Android) nao ha proxy — la se usa acesso direto. */
+     sem esses globais (LG/Android) nao ha proxy — la se usa acesso direto.
+     custom = true quando o usuario informou o proprio proxy (Worker),
+     cujas respostas sao do servidor (autoritativas). */
   function webProxyList() {
     var urls = [];
     var names = [];
+    var custom = false;
     try {
       if (window.WEB_PROXY_ENABLED) {
+        custom = !!window.WEB_PROXY_CUSTOM;
         if (window.webProxyPrefixes && window.webProxyPrefixes.length) {
           urls = window.webProxyPrefixes;
           names = (window.webProxyNames && window.webProxyNames.length === urls.length)
@@ -67,20 +71,21 @@ var XtreamService = (function () {
         }
       }
     } catch (e) {}
-    return { urls: urls, names: names };
+    return { urls: urls, names: names, custom: custom };
   }
 
   function candidateUrls(url) {
-    var out = [{ url: url, kind: 'direct', label: 'direto' }];
+    var out = [{ url: url, kind: 'direct', label: 'direto', authoritative: true }];
     var up = httpsUpgrade(url);
-    if (up) out.push({ url: up, kind: 'https', label: 'https' });
+    if (up) out.push({ url: up, kind: 'https', label: 'https', authoritative: true });
     var pl = webProxyList();
     for (var i = 0; i < pl.urls.length; i++) {
       if (pl.urls[i]) {
         out.push({
           url: pl.urls[i] + encodeURIComponent(url),
           kind: 'proxy',
-          label: pl.names[i] || ('proxy' + (i + 1))
+          label: pl.names[i] || ('proxy' + (i + 1)),
+          authoritative: !!pl.custom
         });
       }
     }
@@ -133,18 +138,25 @@ var XtreamService = (function () {
           var parsed = JSON.parse(raw);
           if (parsed !== null && typeof parsed === 'object') obj = parsed;
         } catch (e) {}
-        var ct = (xhr.getResponseHeader ? (xhr.getResponseHeader('content-type') || '') : '').toLowerCase();
         var okStatus = (xhr.status >= 200 && xhr.status < 300);
         if (okStatus && obj !== null) {
           success(obj);
-        } else if (okStatus && (entry.kind === 'direct' || entry.kind === 'https')) {
-          /* servidor respondeu 200 mas nao era JSON (pagina de erro etc.) */
-          fail('Resposta inesperada do servidor (esperado JSON)');
-        } else if (entry.kind === 'direct' || entry.kind === 'https') {
-          /* resposta do proprio servidor: proxy nao mudaria isso */
-          fail('Servidor respondeu HTTP ' + xhr.status);
+        } else if (entry.authoritative) {
+          /* resposta do proprio servidor (ou do proxy proprio do usuario,
+             ex.: Cloudflare Worker): proxy nenhum mudaria um 401/404 */
+          if (okStatus) {
+            fail(entry.kind === 'proxy'
+              ? 'Proxy proprio devolveu conteudo inesperado (esperado JSON do servidor)'
+              : 'Resposta inesperada do servidor (esperado JSON)');
+          } else if (xhr.status === 401) {
+            fail('Servidor respondeu HTTP 401 — confira usuario e senha');
+          } else if (entry.kind === 'proxy') {
+            fail('Proxy proprio respondeu HTTP ' + xhr.status + ' — confira a URL do proxy e o servidor');
+          } else {
+            fail('Servidor respondeu HTTP ' + xhr.status);
+          }
         } else {
-          /* proxy devolveu HTML/erro/lixo -> tenta os outros */
+          /* proxy publico devolveu HTML/erro/lixo -> tenta os outros */
           if (done) return;
           reasons.push(entry.label + ':' + (okStatus ? 'nao-json' : ('HTTP ' + xhr.status)));
           pending--;

@@ -24,8 +24,8 @@
 const ALLOWED_ORIGINS = '*';
 
 // Restrinja os destinos permitidos (prefixo da URL). Vazio = permite tudo.
-// Ex.: ['http://SEU-PAINEL-IPTV.COM', 'https://SEU-PAINEL-IPTV.COM']
-const ALLOWED_PREFIXES = [];
+// Ja pre-configurado para o painel do usuario:
+const ALLOWED_PREFIXES = ['http://auth.urlsync.gy', 'https://auth.urlsync.gy'];
 
 // Hosts que nunca devem ser acessados pelo proxy (segurança interna).
 const BLOCKED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];

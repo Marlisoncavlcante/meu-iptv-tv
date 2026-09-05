@@ -91,6 +91,14 @@
     if (custom) return [{ name: 'proxy proprio', url: custom }];
     return proxyPrefixes();
   }
+  /* true quando o usuario configurou o proprio proxy (ex.: Cloudflare Worker).
+     Respostas dele sao do servidor (autoritativas): 401 = credencial errada,
+     nao "erro de rede". */
+  function customProxyInUse() {
+    var custom = '';
+    try { custom = (localStorage.getItem('customProxy') || '').replace(/^\s+|\s+$/g, ''); } catch (e) {}
+    return !!custom;
+  }
   function setProxy(on, silent) {
     var list = on ? currentProxyList() : [];
     var urls = [];
@@ -100,6 +108,7 @@
       names.push(list[i].name);
     }
     window.WEB_PROXY_ENABLED = !!on;
+    window.WEB_PROXY_CUSTOM = !!(on && customProxyInUse());
     window.webProxyPrefix = urls.length ? urls[0] : '';
     window.webProxyPrefixes = urls;
     window.webProxyNames = names;

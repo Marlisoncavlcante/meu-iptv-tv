@@ -37,29 +37,36 @@ Pronto — o login passa a usar **só o seu worker**, sem depender de proxy púb
 
 ## Segurança / ajustes (opcional)
 
-No topo do `worker-cors.js` existem duas constantes:
-
-- `ALLOWED_ORIGINS = '*'` → libera qualquer site. Para restringir ao seu site,
-  troque por `'https://marlisoncavlcante.github.io'`.
-- `ALLOWED_PREFIXES = []` → deixe vazio para permitir qualquer painel, ou
-  preencha com o endereço do **seu** painel para que o worker só aceite ele:
+Este `worker-cors.js` já vem **pré-configurado para o seu painel**:
 
 ```js
-const ALLOWED_PREFIXES = ['http://SEU-PAINEL-IPTV.COM'];
+const ALLOWED_PREFIXES = ['http://auth.urlsync.gy', 'https://auth.urlsync.gy'];
 ```
 
----
+Ou seja: o worker só aceita buscar URLs do `auth.urlsync.gy` — ninguém mais
+consegue usá-lo como proxy aberto. Para liberar outro painel no futuro, basta
+adicionar o endereço na lista (ou esvaziá-la, o que libera qualquer destino —
+não recomendado).
+
+- `ALLOWED_ORIGINS = '*'` → libera qualquer site de origem. Para restringir,
+  troque por `'https://marlisoncavlcante.github.io'`.
 
 ## Testar o worker
 
 Com a URL do worker em mãos, teste num navegador ou no PowerShell:
 
 ```powershell
-# troque pela sua URL de worker
-Invoke-WebRequest "https://meu-iptv-proxy.seu-subdominio.workers.dev/?url=http%3A%2F%2Fexemplo.com" -UseBasicParsing | Select-Object StatusCode
+# troque pela sua URL de worker (o final ?url= aponta para o painel)
+Invoke-WebRequest "https://meu-iptv-proxy.seu-subdominio.workers.dev/?url=http%3A%2F%2Fauth.urlsync.gy%2Fplayer_api.php" -UseBasicParsing | Select-Object StatusCode
 ```
 
-Se responder `200`, o worker está no ar e pronto para ser usado no login.
+Se responder `200`, o worker está no ar. Na tela de login do app web, use:
 
-> Dica: se mesmo com o worker der "Erro de rede", aperte **Ctrl+F5** na página
-> do app (recarrega o JavaScript novo, sem cache) e tente de novo.
+- **Servidor (DNS):** `http://auth.urlsync.gy`
+- **Proxy próprio:** `https://meu-iptv-proxy.seu-subdominio.workers.dev/?url=`
+- **Usuário/senha:** os que funcionam na TV LG
+
+> Testei o painel: HTTP responde e a API Xtream (`player_api.php`) responde
+> `401` para senha errada — ou seja, está no ar. Ele **não** tem HTTPS, então
+> na web ele só conecta passando pelo worker (ou por um painel com HTTPS).
+> Dica: se der erro, aperte **Ctrl+F5** (recarrega o JavaScript novo) e tente de novo.
