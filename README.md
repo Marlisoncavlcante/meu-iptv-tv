@@ -2,6 +2,11 @@
 
 Site de divulgação do aplicativo **Meu IPTV TV** (player IPTV Xtream para Android TV, TV Box, Google TV e celular), pronto para publicar no **GitHub Pages** — **inclui uma Versão Web do app** que roda no navegador.
 
+🌍 **No ar (GitHub Pages):**
+- Landing page: <https://marlisoncavlcante.github.io/meu-iptv-tv/>
+- **Versão Web do app:** <https://marlisoncavlcante.github.io/meu-iptv-tv/app/>
+- Repositório: <https://github.com/Marlisoncavlcante/meu-iptv-tv>
+
 ![banner](assets/img/banner.png)
 
 ## 📄 Conteúdo
