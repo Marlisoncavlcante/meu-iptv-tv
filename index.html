@@ -35,6 +35,7 @@
       <a href="#telas">Telas</a>
       <a href="#como-funciona">Como funciona</a>
       <a href="#windows" title="Versão para computador">Windows</a>
+    <a href="#samsung" title="Versão para TVs Samsung (Tizen)">Samsung TV</a>
       <a href="#faq">FAQ</a>
       <a class="btn btn-primary btn-sm" href="#download">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -200,7 +201,7 @@
     <div class="steps">
       <div class="step">
         <h3>Baixe o app</h3>
-        <p>Escolha a sua plataforma: <strong>Windows</strong> (instale com o <code>.exe</code> — ele cria o atalho no Desktop e no Menu Iniciar) ou <strong>Android</strong> (instale o APK). Tudo na seção <a href="#download">Download</a>.</p>
+        <p>Escolha a sua plataforma: <strong>Windows</strong> (instale com o <code>.exe</code> — cria o atalho no Desktop e no Menu Iniciar), <strong>Android</strong> (instale o APK) ou <strong>Samsung TV</strong> 2016+ (pacote Tizen). Tudo na seção <a href="#download">Download</a>.</p>
         <code>Windows 10/11 · Android TV / TV Box / Celular</code>
       </div>
       <div class="step">
@@ -241,6 +242,7 @@
         <span><b>Versão:</b> 1.0.1</span>
         <span><b>Windows:</b> ~0,6 MB</span>
         <span><b>Android:</b> ~0,2 MB</span>
+        <span><b>Samsung TV:</b> ~0,3 MB</span>
         <span><b>Preço:</b> Grátis</span>
       </div>
 
@@ -253,6 +255,10 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Baixar APK Android — v1.0.1
         </a>
+        <a class="btn btn-ghost dl-big" href="assets/download/MeuIPTV-TV-Tizen-v1.0.0.wgt" download="MeuIPTV-TV-Tizen-v1.0.0.wgt">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="19"/></svg>
+          Baixar Samsung TV (.wgt)
+        </a>
       </div>
 
       <p style="margin:-2px 0 18px;color:var(--txt-dim);font-size:.9rem">
@@ -264,6 +270,7 @@
         <li><b>Windows (recomendado):</b> baixe o <code>.exe</code>, abra e clique em <em>Instalar</em>. Ele cria o <strong>atalho na Área de Trabalho</strong> e no Menu Iniciar, e fica em "Programas e Recursos" (dá para desinstalar).</li>
         <li><b>Windows (portátil):</b> baixe o <code>.zip</code>, clique com o botão direito → <em>"Extrair tudo"</em> e abra <code>MeuIPTV-TV.exe</code>.</li>
         <li><b>Android:</b> baixe o <code>.apk</code>, transfira para o aparelho (pendrive, nuvem ou navegador da TV) e abra com um app de arquivos (ex.: <em>Downloader</em>, <em>X-plore</em>), permitindo <strong>"instalar de fontes desconhecidas"</strong>.</li>
+        <li><b>Samsung TV (2016+, Tizen):</b> baixe o <code>.wgt</code> e envie para a TV pelo Tizen Studio (modo desenvolvedor) — <a href="#samsung">passo a passo aqui</a>.</li>
         <li>Pronto! Abra o <strong>Meu IPTV TV</strong> e entre com seu provedor.</li>
       </ol>
 
@@ -307,6 +314,40 @@
   </div>
 </section>
 
+<!-- ======= VERSÃO SAMSUNG TV ======= -->
+<section id="samsung">
+  <div class="container">
+    <div class="sec-head">
+      <div class="kicker">Versão Samsung TV</div>
+      <h2>Assista na sua TV Samsung (Tizen)</h2>
+      <p>O <strong>Meu IPTV TV para Samsung</strong> roda nas TVs Samsung <strong>2016 ou mais novas</strong> (sistema Tizen, incluindo as 4K). Usa o player <strong>nativo AVPlay</strong> nos modelos com suporte e, nas TVs mais recentes (2023+), alterna sozinho para o modo HTML5/hls.js. Navegação 100% pelo controle remoto.</p>
+    </div>
+
+    <div class="how-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:26px">
+      <div class="feat"><div class="ico" style="margin-bottom:14px">📺</div>
+        <h3>Prepare a TV</h3>
+        <p>Na loja Samsung da TV, instale o app <strong>"Samsung Developer Mode"</strong>, abra e <strong>ative</strong> com sua conta Samsung. Anote o <strong>IP da TV</strong> (Configurações → Rede → Estado da rede).</p>
+      </div>
+      <div class="feat"><div class="ico" style="margin-bottom:14px">⬇️</div>
+        <h3>Baixe o pacote</h3>
+        <p>Baixe o arquivo <code>.wgt</code> ao lado e instale no computador o <strong>Tizen Studio</strong> (ferramenta gratuita da Samsung). Ele cria o certificado de desenvolvedor e faz o envio para a TV.</p>
+      </div>
+      <div class="feat"><div class="ico" style="margin-bottom:14px">🚀</div>
+        <h3>Instale e assista</h3>
+        <p>Com o Developer Mode ativo, conecte o PC à TV pelo IP e envie o pacote (ex.: <code>sdb install MeuIPTV-TV-Tizen-v1.0.0.wgt</code>). Pronto — entre com seu provedor Xtream.</p>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <a class="btn btn-primary" href="assets/download/MeuIPTV-TV-Tizen-v1.0.0.wgt" download="MeuIPTV-TV-Tizen-v1.0.0.wgt" style="font-size:1.15rem;padding:18px 44px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="19"/></svg>
+        Baixar Samsung TV (.wgt)
+      </a>
+      <p style="margin-top:16px;color:var(--txt-dim);font-size:.88rem">Tamanho ~0,3 MB · Samsung TV 2016+ (Tizen 2.3 ou superior). Este pacote é o <b>modo desenvolvedor</b> — o envio para a TV exige o Tizen Studio. Para vender na loja Samsung, o mesmo pacote é publicado pelo <b>Samsung Seller Portal</b>.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ======= FAQ ======= -->
 <section class="bg-soft" id="faq">
   <div class="container">
@@ -320,6 +361,10 @@
         <summary>Tem versão para Windows?</summary>
         <p>Sim! Baixe o <strong>instalador</strong> na seção <a href="#windows">Windows</a> (ou em <a href="#download">Download</a>) — ele instala o app e cria atalho no Desktop e no Menu Iniciar. Também há a versão <strong>portátil (ZIP)</strong>, para levar num pendrive e abrir em qualquer PC. Requisitos: <strong>Windows 10/11 (64 bits)</strong>.</p>
       </details>
+      <details>
+        <summary>Tem versão para Samsung TV?</summary>
+        <p>Sim! Se a sua TV Samsung é de <strong>2016 ou mais nova</strong> (sistema Tizen — inclui os modelos com Samsung Apps e as 4K), baixe o pacote <code>.wgt</code> na seção <a href="#samsung">Samsung TV</a> e envie pelo <strong>Tizen Studio</strong> com o modo desenvolvedor ativo na TV. Canais ao vivo usam o player nativo (AVPlay) e, nas TVs mais novas, o app alterna sozinho para o modo HTML5.</p>
+      </details>
       <details open>
         <summary>O app fornece canais, filmes ou séries?</summary>
         <p>Não. O Meu IPTV TV é apenas um reprodutor (player). Todo o conteúdo exibido vem do servidor IPTV que você mesmo configurou com seus dados de acesso.</p>
@@ -330,7 +375,7 @@
       </details>
       <details>
         <summary>Funciona em quais aparelhos?</summary>
-        <p>Android TV, Google TV, TV Box Android, celulares/tablets Android (Android 5.0 ou superior) e <strong>computadores com Windows 10/11 (64 bits)</strong>. Interface otimizada para controle remoto, teclado e mouse.</p>
+        <p><strong>Android TV / Google TV / TV Box Android</strong>, <strong>celulares e tablets Android</strong> (5.0+), <strong>TVs LG webOS</strong>, <strong>TVs Samsung (2016+, Tizen)</strong> e <strong>Windows 10/11 (64 bits)</strong>. TVs Samsung muito antigas (2015 ou anteriores, Smart Hub antigo) não têm o sistema Tizen e não conseguem rodar o app.</p>
       </details>
       <details>
         <summary>Meus dados de login ficam seguros?</summary>

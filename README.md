@@ -6,6 +6,7 @@ publicada no **GitHub Pages**: https://marlisoncavlcante.github.io/meu-iptv-tv/
 - **Download para Windows — Instalador (.exe, ~0,6 MB):** `assets/download/MeuIPTV-TV-Setup-v1.0.1.exe` (cria atalho no Desktop e no Menu Iniciar)
 - **Download para Windows — Portátil (ZIP, ~0,5 MB):** `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip`
 - **Download Android (APK):** `assets/download/MeuIPTV-TV-v1.0.1.apk`
+- **Download Samsung TV (Tizen .wgt, ~0,3 MB):** `assets/download/MeuIPTV-TV-Tizen-v1.0.0.wgt` (instalação via Tizen Studio / modo desenvolvedor)
 - **Política de privacidade:** `privacidade.html`
 
 > ℹ️ **Nota:** a antiga **"Versão Web"** (reprodução direto no navegador) foi
@@ -25,6 +26,7 @@ publicada no **GitHub Pages**: https://marlisoncavlcante.github.io/meu-iptv-tv/
 | `assets/download/MeuIPTV-TV-Setup-v1.0.1.exe` | Instalador Windows (NSIS, cria atalhos Desktop/Menu Iniciar) |
 | `assets/download/MeuIPTV-TV-Windows-v1.0.1.zip` | App Windows portátil (WebView2) |
 | `assets/download/MeuIPTV-TV-v1.0.1.apk` | App Android (TV Box / celular) |
+| `assets/download/MeuIPTV-TV-Tizen-v1.0.0.wgt` | App Samsung TV (Tizen) — pacote web .wgt |
 | `privacidade.html` | Política de privacidade |
 | `assets/img/` | Ícones e capturas de tela |
 
@@ -53,4 +55,5 @@ O GitHub Pages publica automaticamente (branch `main`).
 | Windows (10/11 x64) — instalador | app local (WebView2) | 1.0.1 | `MeuIPTV-TV-Setup-v1.0.1.exe` |
 | Windows (10/11 x64) — portátil | app local (WebView2) | 1.0.1 | `MeuIPTV-TV-Windows-v1.0.1.zip` |
 | Android | `com.meuiptv.tv` | 1.0.1 | `MeuIPTV-TV-v1.0.1.apk` |
+| Samsung TV (Tizen 2016+) | `MeuIPTVTV.MeuIPTVTV` | 1.0.0 | `MeuIPTV-TV-Tizen-v1.0.0.wgt` |
 | LG webOS | `com.meuiptv.tv` | 1.0.0 | fora deste site (loja LG / Developer Mode) |
